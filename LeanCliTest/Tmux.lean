@@ -388,7 +388,27 @@ def captureSnapshot (session : Session) (config : CaptureConfig := {}) : IO Snap
   if config.quiet then
     args := args.push "-q"
 
-  let text <- runTmuxChecked session.server args
+  let mut effectiveTrailingCells := config.trailingCells
+  let out <- runTmux session.server args
+  let text <-
+    if out.exitCode == 0 then
+      pure out.stdout
+    else
+      let stderr := out.stderr.trimAscii.toString
+      if config.wrap == .keepPhysicalLines &&
+         config.trailingCells == .trimEmptyCells &&
+         stderr.contains "unknown option -- T" then
+        let fallbackArgs := args.filter (fun arg => arg != "-T")
+        let fallbackOut <- runTmux session.server fallbackArgs
+        if fallbackOut.exitCode != 0 then
+          let fallbackErr := fallbackOut.stderr.trimAscii.toString
+          throw <| IO.userError
+            s!"{renderCommand session.server fallbackArgs} failed with exit code {fallbackOut.exitCode}\n{fallbackErr}"
+        effectiveTrailingCells := .tmuxDefault
+        pure fallbackOut.stdout
+      else
+        throw <| IO.userError
+          s!"{renderCommand session.server args} failed with exit code {out.exitCode}\n{stderr}"
   pure {
     target := session.target
     text := text
@@ -398,7 +418,7 @@ def captureSnapshot (session : Session) (config : CaptureConfig := {}) : IO Snap
     stop := config.stop
     includeEscapes := config.includeEscapes
     wrap := config.wrap
-    trailingCells := config.trailingCells
+    trailingCells := effectiveTrailingCells
     nonPrintable := config.nonPrintable
     includePartialEscapePrefix := config.includePartialEscapePrefix
     quiet := config.quiet
