@@ -13,3 +13,4 @@ lean_lib LeanCliTest where
 @[test_driver]
 lean_exe test where
   root := `TestDriver
+  supportInterpreter := true
