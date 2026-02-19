@@ -1,0 +1,31 @@
+# Lean4 commit convention template
+#
+# Format:
+# <type>: <subject>
+#
+# <body>
+#
+# <footer>
+#
+# Allowed <type> values:
+# feat, fix, doc, style, refactor, test, chore, perf
+#
+# Subject rules:
+# - imperative, present tense
+# - do not capitalize first letter
+# - no trailing period
+#
+# Body rules:
+# - imperative, present tense
+# - explain motivation and contrast with previous behavior
+# - if this is feat/fix with a changelog-* label, begin with: "This PR "
+#
+# Footer (optional):
+# - breaking changes
+# - issue references, e.g. "Closes #123"
+
+<type>: <subject>
+
+<body>
+
+<footer>
